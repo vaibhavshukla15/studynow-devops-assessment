@@ -1,0 +1,48 @@
+name: StudyNow MongoDB Backup
+on:
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch:
+jobs:
+  backup:
+    name: Hourly MongoDB Backup
+    runs-on: self-hosted
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Verify Docker
+        run: docker --version
+      - name: Verify MongoDB container
+        shell: bash
+        run: |
+          docker ps --format '{{.Names}}' | grep -q '^studynow-mongo$'
+      - name: Create .env from GitHub Secrets
+        shell: bash
+        env:
+          MONGO_ROOT_USER: ${{ secrets.MONGO_ROOT_USER }}
+          MONGO_ROOT_PASSWORD: ${{ secrets.MONGO_ROOT_PASSWORD }}
+          MONGO_APP_USER: ${{ secrets.MONGO_APP_USER }}
+          MONGO_APP_PASSWORD: ${{ secrets.MONGO_APP_PASSWORD }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          cat > .env <<EOF
+          MONGO_ROOT_USER=${MONGO_ROOT_USER}
+          MONGO_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
+          MONGO_APP_DB=studynow
+          MONGO_APP_USER=${MONGO_APP_USER}
+          MONGO_APP_PASSWORD=${MONGO_APP_PASSWORD}
+          APP_VERSION=1.0.0
+          FORCE_UNHEALTHY=false
+          BACKUP_PASSPHRASE=${BACKUP_PASSPHRASE}
+          EOF
+      - name: Run encrypted MongoDB backup
+        shell: bash
+        run: |
+          chmod +x scripts/backup.sh
+          ./scripts/backup.sh
+      - name: Verify backup files
+        shell: bash
+        run: |
+          test -n "$(find backups -name '*.gpg' -type f -print -quit)"
+          test -n "$(find offsite-backup -name '*.gpg' -type f -print -quit)"
+          echo "Primary and offsite encrypted backups exist."

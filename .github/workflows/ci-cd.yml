@@ -1,0 +1,47 @@
+﻿name: StudyNow CI/CD
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+jobs:
+  test:
+    name: Test and Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - name: Install dependencies
+        working-directory: app
+        run: npm ci
+      - name: Run tests
+        working-directory: app
+        run: npm test
+      - name: Run lint
+        working-directory: app
+        run: npm run lint
+      - name: Build Docker image
+        run: docker build -t studynow-app:${{ github.sha }} ./app
+  deploy:
+    name: Blue-Green Deployment
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: test
+    runs-on: self-hosted
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Verify Docker
+        run: docker --version
+      - name: Deploy using Blue-Green strategy
+        shell: bash
+        run: |
+          chmod +x scripts/deploy.sh
+          ./scripts/deploy.sh

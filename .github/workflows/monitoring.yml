@@ -1,0 +1,21 @@
+name: StudyNow Monitoring
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+jobs:
+  health-check:
+    name: Application Health Check
+    runs-on: self-hosted
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Run health check
+        shell: bash
+        env:
+          HEALTH_URL: http://localhost:8080/health
+          ALERT_WEBHOOK_URL: ${{ secrets.ALERT_WEBHOOK_URL }}
+          ALERT_WEBHOOK_TYPE: ${{ secrets.ALERT_WEBHOOK_TYPE }}
+        run: |
+          chmod +x scripts/health-check.sh
+          ./scripts/health-check.sh

@@ -1,0 +1,8 @@
+.env
+.active_color
+node_modules/
+backups/
+backup-work/
+offsite-backup/
+*.gpg
+*.archive.gz
