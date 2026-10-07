@@ -1,4 +1,4 @@
-﻿# StudyNow MongoDB Restore Drill
+# StudyNow MongoDB Restore Drill
 ## Drill Date
 2026-10-07
 ## Backup Used
@@ -38,7 +38,7 @@ The restored document was successfully verified:
 - document: important-student-file
 - createdAt: 2026-10-06T12:10:56.934Z
 ## RPO Verification
-The po_test marker was created after the backup was completed.
+The rpo_test marker was created after the backup was completed.
 Backup completion:
 2026-10-07T06:14:57Z
 RPO marker creation:
@@ -46,7 +46,8 @@ RPO marker creation:
 Observed backup-to-marker interval:
 Approximately 3 minutes 35 seconds
 After restore:
-po_test document count: 0
+
+rpo_test document count: 0
 This demonstrates that data created after the selected backup was not present after restoration.
 Target RPO:
 1 hour
@@ -76,3 +77,13 @@ The database was destroyed, restored from the encrypted backup, verified, and th
 The measured 9 minute 32 second RTO represents this local restore drill. It does not represent the complete production recovery time for a Linode regional failure, Cloudflare/DNS changes, infrastructure provisioning, or cross-region recovery.
 ## Security Note
 Secrets and backup passphrases are not stored in this evidence file.
+
+
+
+## Zero-Downtime Deployment Validation
+- Deployment tested: Green to Blue
+- Continuous health requests during deployment: 1,579
+- Successful requests: 1,579
+- Failed requests: 0
+- Result: PASS
+- This was validated locally using Docker Compose and NGINX; it does not represent a production Linode/Cloudflare failover test.
